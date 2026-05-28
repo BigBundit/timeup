@@ -132,38 +132,40 @@
       border-color: #444;
     }
 
-    /* Sound button — circular icon button */
+    /* Sound button */
     .btn-sound {
       padding: 0;
-      width:  clamp(48px, 7vw, 80px);
-      height: clamp(48px, 7vw, 80px);
-      font-size: clamp(20px, 3vw, 36px);
+      width:  clamp(52px, 7vw, 84px);
+      height: clamp(52px, 7vw, 84px);
+      font-size: clamp(22px, 3.2vw, 40px);
       background: transparent;
-      color: #555;
-      border: 2px solid #1e1e1e;
+      color: #ffd740;
+      border: 2px solid #4a3c00;
       display: flex;
       align-items: center;
       justify-content: center;
       letter-spacing: 0;
     }
-    .btn-sound:hover { color: #aaa; border-color: #444; }
-    .btn-sound.muted { color: #2a2a2a; border-color: #161616; }
-    .btn-sound.ringing {
-      color: #ffd740;
+    .btn-sound:hover {
       border-color: #ffd740;
-      box-shadow: 0 0 24px rgba(255, 215, 64, 0.5);
-      animation: bellShake 0.4s ease-in-out infinite;
+      box-shadow: 0 0 28px rgba(255, 215, 64, 0.4);
     }
+    .btn-sound.ringing {
+      border-color: #ffd740;
+      box-shadow: 0 0 32px rgba(255, 215, 64, 0.6);
+      animation: bellShake 0.35s ease-in-out infinite;
+    }
+    .btn-sound.ringing:hover { animation: none; }
 
     @keyframes bellShake {
-      0%,100% { transform: rotate(0deg) scale(0.95); }
-      25%      { transform: rotate(-12deg) scale(1); }
-      75%      { transform: rotate(12deg) scale(1); }
+      0%,100% { transform: rotate(0deg); }
+      25%      { transform: rotate(-14deg); }
+      75%      { transform: rotate(14deg); }
     }
 
     @media (max-height: 500px) {
-      .display     { font-size: clamp(60px, 18vh, 160px); }
-      .milliseconds{ font-size: clamp(24px, 7vh, 64px); margin-bottom: 3vh; }
+      .display      { font-size: clamp(60px, 18vh, 160px); }
+      .milliseconds { font-size: clamp(24px, 7vh, 64px); margin-bottom: 3vh; }
     }
   </style>
 </head>
@@ -181,11 +183,11 @@
   </div>
 
   <script>
-    const ALARM_AT_MS = 5 * 60 * 1000; // 5 minutes
+    const ALARM_AT_MS = 5 * 60 * 1000;
 
     let startTime = 0, elapsed = 0;
     let timerInterval = null, running = false;
-    let soundEnabled = true, alarmFired = false;
+    let alarmFired = false, alarmPlaying = false;
     let alarmOscs = [];
     let audioCtx = null;
 
@@ -200,36 +202,19 @@
       return audioCtx;
     }
 
-    /* ── Short tick for button presses ── */
-    function playTick() {
-      if (!soundEnabled) return;
-      const ctx = getCtx();
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = 900;
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
-      osc.start(); osc.stop(ctx.currentTime + 0.07);
-    }
-
-    /* ── Alarm clock sound (classic double-ring pattern) ── */
+    /* ── Alarm clock sound ── */
     function playAlarm() {
       stopAlarm();
-      if (!soundEnabled) return;
       const ctx = getCtx();
       alarmOscs = [];
       let t = ctx.currentTime;
 
-      /* 10 groups × 3 double-beeps = ~8 sec of ringing */
       for (let g = 0; g < 10; g++) {
         for (let b = 0; b < 3; b++) {
           const osc  = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.connect(gain); gain.connect(ctx.destination);
           osc.type = 'square';
-          /* alternate 880 Hz → 1046 Hz inside each beep (classic alarm tone) */
           osc.frequency.setValueAtTime(880,  t);
           osc.frequency.setValueAtTime(1046, t + 0.09);
           gain.gain.setValueAtTime(0,    t);
@@ -240,8 +225,14 @@
           alarmOscs.push(osc);
           t += 0.21;
         }
-        t += 0.38; // pause between groups
+        t += 0.38;
       }
+
+      alarmPlaying = true;
+      btnSound.classList.add('ringing');
+
+      /* auto-reset button state after alarm finishes (~8s) */
+      setTimeout(resetSoundBtn, 8200);
     }
 
     function stopAlarm() {
@@ -249,13 +240,19 @@
       alarmOscs = [];
     }
 
-    /* ── Sound toggle button ── */
+    function resetSoundBtn() {
+      alarmPlaying = false;
+      btnSound.classList.remove('ringing');
+    }
+
+    /* ── กดปุ่ม 🔔 → เล่นเสียงปลุกทันที กด ซ้ำ → หยุด ── */
     function handleSound() {
-      soundEnabled = !soundEnabled;
-      btnSound.textContent = soundEnabled ? '🔔' : '🔕';
-      btnSound.classList.toggle('muted', !soundEnabled);
-      /* play a preview beep when turning ON */
-      if (soundEnabled) playTick();
+      if (alarmPlaying) {
+        stopAlarm();
+        resetSoundBtn();
+      } else {
+        playAlarm();
+      }
     }
 
     function pad(n, len = 2) { return String(n).padStart(len, '0'); }
@@ -266,26 +263,23 @@
       display.textContent   = `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
       msDisplay.textContent = `.${pad(now % 1000, 3)}`;
 
-      /* Trigger alarm once at 5 minutes */
       if (now >= ALARM_AT_MS && !alarmFired) {
         alarmFired = true;
         display.classList.remove('running');
         display.classList.add('alarm-flash');
-        btnSound.classList.add('ringing');
         playAlarm();
       }
     }
 
     function clearAlarmState() {
       display.classList.remove('alarm-flash');
-      btnSound.classList.remove('ringing');
       stopAlarm();
+      resetSoundBtn();
       alarmFired = false;
     }
 
     function handleStart() {
       if (running) return;
-      playTick();
       startTime = Date.now(); running = true;
       timerInterval = setInterval(updateDisplay, 30);
       display.classList.remove('alarm-flash');
@@ -297,7 +291,6 @@
 
     function handleStop() {
       if (!running) return;
-      playTick();
       elapsed += Date.now() - startTime; running = false;
       clearInterval(timerInterval); updateDisplay();
       if (!alarmFired) {
@@ -309,7 +302,6 @@
     }
 
     function handleReset() {
-      playTick();
       running = false; clearInterval(timerInterval);
       elapsed = 0; startTime = 0;
       display.textContent   = '00:00:00';
