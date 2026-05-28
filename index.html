@@ -11,6 +11,11 @@
       box-sizing: border-box;
     }
 
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
     body {
       background-color: #0a0a0a;
       color: #e0e0e0;
@@ -18,79 +23,83 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      min-height: 100dvh;
       overflow: hidden;
     }
 
     .container {
       text-align: center;
-      padding: 48px 40px;
+      width: min(92vw, 700px);
+      padding: clamp(32px, 6vh, 80px) clamp(24px, 5vw, 80px);
       background: #111111;
-      border-radius: 24px;
+      border-radius: clamp(16px, 3vw, 32px);
       border: 1px solid #222222;
       box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 0 120px rgba(0, 200, 255, 0.04);
-      min-width: 360px;
     }
 
     .title {
-      font-size: 14px;
+      font-size: clamp(11px, 1.5vw, 15px);
       font-weight: 500;
-      letter-spacing: 0.3em;
+      letter-spacing: 0.35em;
       text-transform: uppercase;
       color: #555555;
-      margin-bottom: 36px;
+      margin-bottom: clamp(24px, 4vh, 48px);
     }
 
     .display {
-      font-size: 72px;
+      font-size: clamp(48px, 14vw, 120px);
       font-weight: 200;
       letter-spacing: 0.04em;
       color: #f0f0f0;
       font-variant-numeric: tabular-nums;
       line-height: 1;
-      margin-bottom: 12px;
+      margin-bottom: clamp(6px, 1.5vh, 16px);
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
     .display.running {
       color: #00e5ff;
-      text-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+      text-shadow: 0 0 40px rgba(0, 229, 255, 0.35);
     }
 
     .milliseconds {
-      font-size: 28px;
+      font-size: clamp(20px, 5vw, 44px);
       font-weight: 300;
-      color: #444444;
+      color: #3a3a3a;
       letter-spacing: 0.1em;
-      margin-bottom: 48px;
+      margin-bottom: clamp(36px, 7vh, 72px);
       font-variant-numeric: tabular-nums;
+      transition: color 0.3s ease;
     }
 
     .milliseconds.running {
-      color: #005f70;
+      color: #00677a;
     }
 
     .controls {
       display: flex;
-      gap: 16px;
+      gap: clamp(10px, 2.5vw, 24px);
       justify-content: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     button {
-      padding: 14px 32px;
+      padding: clamp(12px, 2.2vh, 20px) clamp(20px, 4vw, 48px);
       border: none;
-      border-radius: 12px;
-      font-size: 15px;
+      border-radius: clamp(10px, 1.5vw, 16px);
+      font-size: clamp(13px, 2.2vw, 18px);
       font-weight: 600;
       cursor: pointer;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       transition: all 0.15s ease;
-      min-width: 96px;
+      flex: 1;
+      max-width: clamp(90px, 20vw, 160px);
       outline: none;
+      white-space: nowrap;
     }
 
     button:active {
-      transform: scale(0.96);
+      transform: scale(0.95);
     }
 
     .btn-start {
@@ -98,9 +107,15 @@
       color: #000000;
     }
 
-    .btn-start:hover {
+    .btn-start:hover:not(:disabled) {
       background: #00e676;
-      box-shadow: 0 0 20px rgba(0, 200, 83, 0.4);
+      box-shadow: 0 0 24px rgba(0, 200, 83, 0.45);
+    }
+
+    .btn-start:disabled {
+      background: #0d2e17;
+      color: #1a4d27;
+      cursor: not-allowed;
     }
 
     .btn-stop {
@@ -109,22 +124,18 @@
       border: 1px solid #2a2a2a;
     }
 
-    .btn-stop:hover {
+    .btn-stop:hover:not(:disabled) {
       background: #ff5252;
       color: #000000;
       border-color: #ff5252;
-      box-shadow: 0 0 20px rgba(255, 82, 82, 0.4);
+      box-shadow: 0 0 24px rgba(255, 82, 82, 0.45);
     }
 
     .btn-stop:disabled {
-      color: #333333;
-      border-color: #1e1e1e;
+      color: #2e2e2e;
+      border-color: #1a1a1a;
       cursor: not-allowed;
       background: #111111;
-    }
-
-    .btn-stop:disabled:hover {
-      box-shadow: none;
     }
 
     .btn-reset {
@@ -139,45 +150,31 @@
       border-color: #444444;
     }
 
-    .lap-section {
-      margin-top: 32px;
-      max-height: 200px;
-      overflow-y: auto;
+    /* Phone portrait — stack is fine, but bump display larger relative to screen */
+    @media (max-width: 400px) {
+      .display {
+        font-size: clamp(52px, 18vw, 80px);
+      }
+      .milliseconds {
+        font-size: clamp(22px, 7vw, 36px);
+      }
+      button {
+        padding: 14px 12px;
+        font-size: 14px;
+      }
     }
 
-    .lap-section::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .lap-section::-webkit-scrollbar-track {
-      background: #0a0a0a;
-    }
-
-    .lap-section::-webkit-scrollbar-thumb {
-      background: #333333;
-      border-radius: 2px;
-    }
-
-    .lap-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #1a1a1a;
-      font-size: 13px;
-      color: #555555;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .lap-item:first-child {
-      border-top: 1px solid #1a1a1a;
-    }
-
-    .lap-num {
-      color: #333333;
-    }
-
-    .lap-time {
-      color: #555555;
+    /* Landscape phone — shrink vertical spacing */
+    @media (max-height: 500px) {
+      .container {
+        padding: 20px clamp(24px, 5vw, 80px);
+      }
+      .title {
+        margin-bottom: 12px;
+      }
+      .milliseconds {
+        margin-bottom: 20px;
+      }
     }
   </style>
 </head>
@@ -190,7 +187,7 @@
 
     <div class="controls">
       <button class="btn-start" id="btnStart" onclick="handleStart()">เริ่ม</button>
-      <button class="btn-stop" id="btnStop" onclick="handleStop()" disabled>หยุด</button>
+      <button class="btn-stop"  id="btnStop"  onclick="handleStop()"  disabled>หยุด</button>
       <button class="btn-reset" id="btnReset" onclick="handleReset()">รีเซต</button>
     </div>
   </div>
@@ -201,10 +198,10 @@
     let timerInterval = null;
     let running = false;
 
-    const display = document.getElementById('display');
+    const display  = document.getElementById('display');
     const msDisplay = document.getElementById('ms');
     const btnStart = document.getElementById('btnStart');
-    const btnStop = document.getElementById('btnStop');
+    const btnStop  = document.getElementById('btnStop');
 
     function pad(n, len = 2) {
       return String(n).padStart(len, '0');
@@ -212,13 +209,13 @@
 
     function formatTime(ms) {
       const totalSec = Math.floor(ms / 1000);
-      const hours = Math.floor(totalSec / 3600);
+      const hours   = Math.floor(totalSec / 3600);
       const minutes = Math.floor((totalSec % 3600) / 60);
       const seconds = totalSec % 60;
-      const millis = ms % 1000;
+      const millis  = ms % 1000;
       return {
         main: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`,
-        ms: `.${pad(millis, 3)}`
+        ms:   `.${pad(millis, 3)}`
       };
     }
 
@@ -234,11 +231,10 @@
       startTime = Date.now();
       running = true;
       timerInterval = setInterval(updateDisplay, 30);
-
       display.classList.add('running');
       msDisplay.classList.add('running');
       btnStart.disabled = true;
-      btnStop.disabled = false;
+      btnStop.disabled  = false;
     }
 
     function handleStop() {
@@ -247,11 +243,10 @@
       running = false;
       clearInterval(timerInterval);
       updateDisplay();
-
       display.classList.remove('running');
       msDisplay.classList.remove('running');
       btnStart.disabled = false;
-      btnStop.disabled = true;
+      btnStop.disabled  = true;
     }
 
     function handleReset() {
@@ -259,13 +254,12 @@
       clearInterval(timerInterval);
       elapsed = 0;
       startTime = 0;
-
-      display.textContent = '00:00:00';
+      display.textContent  = '00:00:00';
       msDisplay.textContent = '.000';
       display.classList.remove('running');
       msDisplay.classList.remove('running');
       btnStart.disabled = false;
-      btnStop.disabled = true;
+      btnStop.disabled  = true;
     }
   </script>
 </body>
